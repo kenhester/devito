@@ -11,7 +11,7 @@ from devito.logger import warning
 from devito.tools import filter_ordered, flatten
 from devito.types.utils import DimensionTuple
 
-__all__ = ['Differentiable']
+__all__ = ['Differentiable', 'DifferentiableMatrix']
 
 
 class Differentiable(sympy.Expr, Evaluable):
@@ -258,6 +258,46 @@ def highest_priority(DiffOp):
     prio = lambda x: getattr(x, '_fd_priority', 0)
     return sorted(DiffOp._args_diff, key=prio, reverse=True)[0]
 
+class DifferentiableMatrix(Differentiable, sympy.MatrixExpr):
+
+
+    # Override SymPy arithmetic operators
+    def __add__(self, other):
+        return Add(self, other)
+
+    def __iadd__(self, other):
+        return MatAdd(self, other)
+
+    def __radd__(self, other):
+        return MatAdd(other, self)
+
+    def __sub__(self, other):
+        return MatAdd(self, -other)
+
+    def __isub__(self, other):
+        return MatAdd(self, -other)
+
+    def __rsub__(self, other):
+        return MatAdd(other, -self)
+
+    def __mul__(self, other):
+        return MatMul(self, other)
+
+    def __imul__(self, other):
+        return MatMul(self, other)
+
+    def __rmul__(self, other):
+        return MatMul(other, self)
+
+    def __pow__(self, other):
+        return MatPow(self, other)
+
+    def __div__(self, other):
+        return MatMul(self, Pow(other, sympy.S.NegativeOne))
+
+    def __neg__(self):
+        return MatMul(sympy.S.NegativeOne, self)
+
 
 class DifferentiableOp(Differentiable):
 
@@ -363,6 +403,18 @@ class Pow(DifferentiableOp, sympy.Pow):
     __new__ = DifferentiableOp.__new__
 
 
+class MatAdd(DifferentiableOp, sympy.MatAdd):
+    __new__ = DifferentiableOp.__new__
+
+
+class MatMul(DifferentiableOp, sympy.MatMul):
+    __new__ = DifferentiableOp.__new__
+
+
+class MatPow(DifferentiableOp, sympy.MatPow):
+    __new__ = DifferentiableOp.__new__
+
+
 class Mod(DifferentiableOp, sympy.Mod):
     __sympy_class__ = sympy.Mod
     __new__ = DifferentiableOp.__new__
@@ -416,6 +468,18 @@ class diffify(object):
     def _(obj):
         return Pow
 
+    @_cls.register(sympy.MatAdd)
+    def _(obj):
+        return MatAdd
+
+    @_cls.register(sympy.MatMul)
+    def _(obj):
+        return MatMul
+
+    @_cls.register(sympy.MatPow)
+    def _(obj):
+        return MatPow
+
     @_cls.register(sympy.Mod)
     def _(obj):
         return Mod
@@ -423,6 +487,9 @@ class diffify(object):
     @_cls.register(Add)
     @_cls.register(Mul)
     @_cls.register(Pow)
+    @_cls.register(MatAdd)
+    @_cls.register(MatMul)
+    @_cls.register(MatPow)
     @_cls.register(Mod)
     def _(obj):
         return obj.__class__
