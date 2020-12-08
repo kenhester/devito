@@ -31,15 +31,16 @@ RUN apt-get update -y && \
         nodejs \
         liblapack-dev  \
         libblas-dev \
+        libibverbs-dev \
         texlive-latex-extra texlive-fonts-recommended dvipng cm-super && \
     wget -q -P /app/ \
-         https://developer.download.nvidia.com/hpc-sdk/20.9/nvhpc-20-9_20.9_amd64.deb \
-         https://developer.download.nvidia.com/hpc-sdk/20.9/nvhpc-20-9-cuda-multi_20.9_amd64.deb \
-         https://developer.download.nvidia.com/hpc-sdk/20.9/nvhpc-2020_20.9_amd64.deb && \
+         https://developer.download.nvidia.com/hpc-sdk/20.11/nvhpc-20-11_20.11_amd64.deb \
+         https://developer.download.nvidia.com/hpc-sdk/20.11/nvhpc-20-11-cuda-multi_20.11_amd64.deb \
+         https://developer.download.nvidia.com/hpc-sdk/20.11/nvhpc-2020_20.11_amd64.deb && \
     apt-get install -y -q \
-         /app/nvhpc-20-9_20.9_amd64.deb \
-         /app/nvhpc-20-9-cuda-multi_20.9_amd64.deb \
-         /app/nvhpc-2020_20.9_amd64.deb && \
+         /app/nvhpc-20-11_20.11_amd64.deb \
+         /app/nvhpc-20-11-cuda-multi_20.11_amd64.deb \
+         /app/nvhpc-2020_20.11_amd64.deb && \
     apt-get update -y && \
     rm -rf /app/nvhpc* && \
     rm -rf /var/lib/apt/lists/*
